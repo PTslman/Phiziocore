@@ -15,13 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     setupEventListeners();
     loadTheme();
+    setupStatusSelector();
 });
 
 function initializeApp() {
-    // التحقق من Firebase
     checkFirebaseConnection();
     
-    // إخفاء شاشة البداية بعد 2 ثانية
     setTimeout(() => {
         const splash = document.getElementById('splash');
         splash.classList.add('hide');
@@ -33,30 +32,47 @@ function initializeApp() {
 }
 
 // ============================================
+// محدد الحالة
+// ============================================
+function setupStatusSelector() {
+    const options = document.querySelectorAll('.status-option');
+    options.forEach(option => {
+        option.addEventListener('click', function() {
+            options.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            const status = this.getAttribute('data-status');
+            document.getElementById('patientStatus').value = status;
+        });
+    });
+}
+
+// ============================================
 // التحقق من اتصال Firebase
 // ============================================
 function checkFirebaseConnection() {
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
+    const connectionDot = document.getElementById('connectionDot');
+    const connectionText = document.getElementById('connectionText');
+    const connectionTime = document.getElementById('connectionTime');
     
-    statusIndicator.className = 'status-indicator connecting';
-    statusText.textContent = 'جاري الاتصال بقاعدة البيانات...';
+    connectionDot.className = 'connection-dot connecting';
+    connectionText.textContent = 'جاري الاتصال بقاعدة البيانات...';
     
-    // محاولة الاتصال بقاعدة البيانات
     const checkInterval = setInterval(() => {
         if (typeof window.isFirebaseReady !== 'undefined' && window.isFirebaseReady()) {
-            statusIndicator.className = 'status-indicator connected';
-            statusText.textContent = '✅ متصل بقاعدة البيانات';
+            connectionDot.className = 'connection-dot connected';
+            connectionText.textContent = '✅ متصل بقاعدة البيانات';
+            connectionTime.textContent = new Date().toLocaleTimeString('ar-EG');
             clearInterval(checkInterval);
             setupRealtimeSync();
         } else if (typeof window.db !== 'undefined' && window.db()) {
-            statusIndicator.className = 'status-indicator connected';
-            statusText.textContent = '✅ متصل بقاعدة البيانات';
+            connectionDot.className = 'connection-dot connected';
+            connectionText.textContent = '✅ متصل بقاعدة البيانات';
+            connectionTime.textContent = new Date().toLocaleTimeString('ar-EG');
             clearInterval(checkInterval);
             setupRealtimeSync();
         } else {
-            statusIndicator.className = 'status-indicator disconnected';
-            statusText.textContent = '⚠️ غير متصل - وضع غير متصل';
+            connectionDot.className = 'connection-dot disconnected';
+            connectionText.textContent = '⚠️ غير متصل - وضع عدم الاتصال';
         }
     }, 1000);
 }
@@ -67,6 +83,7 @@ function checkFirebaseConnection() {
 function setupEventListeners() {
     document.getElementById('themeToggle').onclick = toggleTheme;
     document.getElementById('syncBtn').onclick = manualSync;
+    document.getElementById('settingsBtn').onclick = () => showModal('settingsModal');
     document.getElementById('addPatientBtn').onclick = () => showModal('patientModal');
     document.getElementById('emptyAddBtn').onclick = () => showModal('patientModal');
     document.getElementById('confirmAdd').onclick = addPatient;
@@ -86,25 +103,38 @@ function setupEventListeners() {
             hideConfirmModal();
         }
     };
-    document.getElementById('searchInput').oninput = filterPatients;
+    
+    // بحث
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    
+    searchInput.oninput = () => {
+        filterPatients();
+        clearSearch.style.display = searchInput.value ? 'flex' : 'none';
+    };
+    
+    clearSearch.onclick = () => {
+        searchInput.value = '';
+        filterPatients();
+        clearSearch.style.display = 'none';
+    };
     
     // إغلاق المودالات
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
         };
     });
     
-    // إغلاق المودال عند الضغط خارج المحتوى
     window.onclick = (e) => {
-        if (e.target.classList && e.target.classList.contains('modal')) {
+        if (e.target.classList && e.target.classList.contains('modal-overlay')) {
             e.target.classList.remove('show');
         }
     };
 }
 
 // ============================================
-// مزامنة Firebase الحية
+// مزامنة Firebase
 // ============================================
 function setupRealtimeSync() {
     try {
@@ -128,6 +158,7 @@ function setupRealtimeSync() {
                     id: doc.id,
                     name: data.name || '',
                     price: data.price || 50000,
+                    status: data.status || 'تحت العلاج',
                     sessions: data.sessions || []
                 });
             });
@@ -138,7 +169,6 @@ function setupRealtimeSync() {
             console.error("Firestore error:", error);
             updateConnectionStatus(false);
             showToast('⚠️ خطأ في الاتصال بقاعدة البيانات', true);
-            // محاولة إعادة الاتصال بعد 5 ثواني
             setTimeout(() => {
                 if (unsubscribe) {
                     unsubscribe();
@@ -154,15 +184,15 @@ function setupRealtimeSync() {
 }
 
 function updateConnectionStatus(isConnected) {
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
+    const connectionDot = document.getElementById('connectionDot');
+    const connectionText = document.getElementById('connectionText');
     
     if (isConnected) {
-        statusIndicator.className = 'status-indicator connected';
-        statusText.textContent = '✅ متصل بقاعدة البيانات';
+        connectionDot.className = 'connection-dot connected';
+        connectionText.textContent = '✅ متصل بقاعدة البيانات';
     } else {
-        statusIndicator.className = 'status-indicator disconnected';
-        statusText.textContent = '⚠️ غير متصل - البيانات محلية';
+        connectionDot.className = 'connection-dot disconnected';
+        connectionText.textContent = '⚠️ غير متصل - البيانات محلية';
     }
 }
 
@@ -177,6 +207,26 @@ function manualSync() {
 // ============================================
 // عرض المرضى
 // ============================================
+function getStatusClass(status) {
+    switch(status) {
+        case 'تحت العلاج': return 'status-active';
+        case 'مستقر': return 'status-stable';
+        case 'مكتمل': return 'status-completed';
+        case 'متوقف': return 'status-stopped';
+        default: return 'status-active';
+    }
+}
+
+function getStatusDot(status) {
+    switch(status) {
+        case 'تحت العلاج': return 'active-status';
+        case 'مستقر': return 'stable-status';
+        case 'مكتمل': return 'completed-status';
+        case 'متوقف': return 'stopped-status';
+        default: return 'active-status';
+    }
+}
+
 function renderPatients() {
     const container = document.getElementById('patientsList');
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -185,39 +235,62 @@ function renderPatients() {
     if (filtered.length === 0) {
         document.getElementById('emptyState').style.display = 'block';
         container.innerHTML = '';
+        document.getElementById('patientCount').textContent = '0';
         return;
     }
     
     document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('patientCount').textContent = filtered.length;
+    
     container.innerHTML = filtered.map(patient => {
         const sessionCount = patient.sessions?.length || 0;
         const totalAmount = sessionCount * (patient.price || 0);
+        const statusClass = getStatusClass(patient.status);
+        const statusDot = getStatusDot(patient.status);
+        
         return `
             <div class="patient-card" data-id="${patient.id}">
                 <div class="patient-header">
-                    <div class="patient-name">
-                        <i class="fas fa-user-circle" style="color: var(--primary); font-size: 1.2rem;"></i>
-                        ${escapeHtml(patient.name)}
-                        <span class="patient-badge">${sessionCount} جلسة</span>
+                    <div class="patient-info">
+                        <div class="patient-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="patient-details">
+                            <h4>${escapeHtml(patient.name)}</h4>
+                            <div class="patient-status ${statusClass}">
+                                <span class="status-dot ${statusDot}" style="width: 6px; height: 6px;"></span>
+                                ${patient.status || 'تحت العلاج'}
+                            </div>
+                        </div>
                     </div>
-                    <div class="patient-stat">
+                    <div class="stat-chip">
                         <i class="fas fa-coins"></i>
                         ${totalAmount.toLocaleString()} ل.س
                     </div>
                 </div>
                 <div class="patient-stats">
-                    <span class="patient-stat"><i class="fas fa-tag"></i> ${(patient.price || 0).toLocaleString()} ل.س/جلسة</span>
-                    <span class="patient-stat"><i class="fas fa-calendar"></i> آخر جلسة: ${getLastSessionDate(patient.sessions)}</span>
+                    <div class="stat-chip">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${sessionCount} جلسة
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fas fa-tag"></i>
+                        ${(patient.price || 0).toLocaleString()} ل.س/جلسة
+                    </div>
+                    <div class="stat-chip">
+                        <i class="fas fa-clock"></i>
+                        آخر جلسة: ${getLastSessionDate(patient.sessions)}
+                    </div>
                 </div>
                 <div class="patient-actions">
-                    <button class="btn-icon" onclick="openSessions('${patient.id}')" title="سجل الجلسات">
+                    <button class="icon-btn" onclick="openSessions('${patient.id}')" title="سجل الجلسات">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-icon" onclick="generatePatientPDF('${patient.id}')" title="تقرير PDF" style="background: rgba(239,68,68,0.1);">
-                        <i class="fas fa-file-pdf" style="color: #ef4444;"></i>
+                    <button class="icon-btn" onclick="generatePatientPDF('${patient.id}')" title="تقرير PDF">
+                        <i class="fas fa-file-pdf"></i>
                     </button>
-                    <button class="btn-icon" onclick="deletePatient('${patient.id}')" title="حذف" style="background: rgba(239,68,68,0.1);">
-                        <i class="fas fa-trash" style="color: #ef4444;"></i>
+                    <button class="icon-btn" onclick="deletePatient('${patient.id}')" title="حذف">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
@@ -246,11 +319,12 @@ function filterPatients() {
 }
 
 // ============================================
-// عمليات CRUD
+// إضافة مريض
 // ============================================
 async function addPatient() {
     const name = document.getElementById('patientName').value.trim();
     const price = parseFloat(document.getElementById('patientPrice').value);
+    const status = document.getElementById('patientStatus').value;
     
     if (!name) {
         showToast('❌ يرجى إدخال اسم المريض', true);
@@ -268,14 +342,29 @@ async function addPatient() {
         
         await database.collection('patients').add({ 
             name: name, 
-            price: price, 
+            price: price,
+            status: status,
             sessions: [],
             createdAt: new Date().toISOString()
         });
+        
         showToast('✅ تمت إضافة المريض بنجاح');
         hideModal('patientModal');
+        
+        // تنظيف الحقول
         document.getElementById('patientName').value = '';
         document.getElementById('patientPrice').value = '50000';
+        document.getElementById('patientStatus').value = 'تحت العلاج';
+        
+        // إعادة تعيين محدد الحالة
+        const options = document.querySelectorAll('.status-option');
+        options.forEach(opt => {
+            opt.classList.remove('active');
+            if (opt.getAttribute('data-status') === 'تحت العلاج') {
+                opt.classList.add('active');
+            }
+        });
+        
     } catch (error) {
         console.error('Add patient error:', error);
         showToast('❌ فشل إضافة المريض', true);
@@ -305,12 +394,18 @@ async function openSessions(patientId) {
     const patient = patients.find(p => p.id === patientId);
     if (!patient) return;
     
-    document.getElementById('sessionPatientName').innerHTML = `
-        <i class="fas fa-user"></i> ${escapeHtml(patient.name)}
-    `;
+    document.getElementById('sessionPatientName').innerHTML = patient.name;
     document.getElementById('sessionDate').value = new Date().toISOString().slice(0, 10);
     await renderSessions();
+    updateSessionStats(patient);
     showModal('sessionsModal');
+}
+
+function updateSessionStats(patient) {
+    const sessionCount = patient.sessions?.length || 0;
+    const totalAmount = sessionCount * (patient.price || 0);
+    document.getElementById('totalSessionsCount').textContent = sessionCount;
+    document.getElementById('totalAmountDue').textContent = totalAmount.toLocaleString();
 }
 
 async function renderSessions() {
@@ -331,9 +426,14 @@ async function renderSessions() {
         <div class="session-item">
             <div style="display:flex;align-items:center;gap:12px">
                 <span class="session-number">${index + 1}</span>
-                <span><i class="fas fa-calendar-day"></i> ${formatDate(session.date)}</span>
+                <div class="session-date">
+                    <i class="fas fa-calendar-day"></i>
+                    ${formatDate(session.date)}
+                </div>
             </div>
-            <i class="fas fa-trash-alt delete-session" onclick="removeSession(${index})"></i>
+            <button class="session-delete" onclick="removeSession(${index})">
+                <i class="fas fa-trash-alt"></i>
+            </button>
         </div>
     `).join('');
 }
@@ -354,6 +454,12 @@ async function addSession() {
             
             await database.collection('patients').doc(currentPatientId).update({ sessions: newSessions });
             showToast('✅ تمت إضافة الجلسة');
+            
+            // تحديث الإحصائيات
+            const updatedPatient = patients.find(p => p.id === currentPatientId);
+            if (updatedPatient) {
+                updateSessionStats(updatedPatient);
+            }
         } catch (error) {
             console.error('Add session error:', error);
             showToast('❌ فشل إضافة الجلسة', true);
@@ -373,6 +479,11 @@ async function removeSession(index) {
                 
                 await database.collection('patients').doc(currentPatientId).update({ sessions: newSessions });
                 showToast('✅ تم حذف الجلسة');
+                
+                const updatedPatient = patients.find(p => p.id === currentPatientId);
+                if (updatedPatient) {
+                    updateSessionStats(updatedPatient);
+                }
             } catch (error) {
                 console.error('Remove session error:', error);
                 showToast('❌ فشل حذف الجلسة', true);
@@ -418,9 +529,9 @@ async function generatePatientPDF(patientId) {
     
     const html = `
         <div style="direction: rtl; font-family: 'Cairo', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; background: white;">
-            <div style="text-align: center; border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 25px;">
-                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #4f46e5, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                    <span style="font-size: 2rem;">⚕️</span>
+            <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-hand-holding-heart" style="font-size: 2rem; color: white;"></i>
                 </div>
                 <h2 style="color: #1e1b4b; margin: 0;">PhysioCare Pro</h2>
                 <p style="color: #64748b; margin: 5px 0 0;">تقرير المريض - ${new Date().toLocaleDateString('ar-EG')}</p>
@@ -430,6 +541,7 @@ async function generatePatientPDF(patientId) {
                 <h3 style="color: #1e1b4b; margin-bottom: 15px;">👤 بيانات المريض</h3>
                 <table style="width: 100%;">
                     <tr><td style="padding: 8px 0;"><strong>الاسم:</strong></td><td>${escapeHtml(patient.name)}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong>الحالة:</strong></td><td>${patient.status || 'تحت العلاج'}</td></tr>
                     <tr><td style="padding: 8px 0;"><strong>سعر الجلسة:</strong></td><td>${patient.price.toLocaleString()} ل.س</td></tr>
                     <tr><td style="padding: 8px 0;"><strong>عدد الجلسات:</strong></td><td>${sessionsList.length} جلسة</td></tr>
                     <tr><td style="padding: 8px 0;"><strong>الإجمالي المستحق:</strong></td><td style="color: #10b981; font-weight: bold;">${totalAmount.toLocaleString()} ل.س</td></tr>
@@ -491,6 +603,7 @@ async function generateGeneralPDF() {
         <tr style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 10px; text-align: center;">${i + 1}</td>
             <td style="padding: 10px;">${escapeHtml(p.name)}</td>
+            <td style="padding: 10px; text-align: center;">${p.status || 'تحت العلاج'}</td>
             <td style="padding: 10px; text-align: center;">${p.sessions?.length || 0}</td>
             <td style="padding: 10px; text-align: center;">${(p.price || 0).toLocaleString()}</td>
             <td style="padding: 10px; text-align: center; color: #10b981;">${((p.sessions?.length || 0) * (p.price || 0)).toLocaleString()}</td>
@@ -499,9 +612,9 @@ async function generateGeneralPDF() {
     
     const html = `
         <div style="direction: rtl; font-family: 'Cairo', sans-serif; padding: 30px; background: white;">
-            <div style="text-align: center; border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 25px;">
-                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #4f46e5, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                    <span style="font-size: 2rem;">📊</span>
+            <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-chart-line" style="font-size: 2rem; color: white;"></i>
                 </div>
                 <h2 style="color: #1e1b4b;">تقرير PhysioCare Pro الشامل</h2>
                 <p style="color: #64748b;">${new Date().toLocaleString('ar-EG')}</p>
@@ -512,6 +625,7 @@ async function generateGeneralPDF() {
                     <tr style="background: #f1f5f9;">
                         <th style="padding: 12px; border: 1px solid #e2e8f0;">#</th>
                         <th style="padding: 12px; border: 1px solid #e2e8f0;">المريض</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
                         <th style="padding: 12px; border: 1px solid #e2e8f0;">الجلسات</th>
                         <th style="padding: 12px; border: 1px solid #e2e8f0;">سعر الجلسة</th>
                         <th style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي</th>
@@ -522,7 +636,7 @@ async function generateGeneralPDF() {
                 </tbody>
                 <tfoot>
                     <tr style="background: #f1f5f9; font-weight: bold;">
-                        <td colspan="2" style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي الكلي</td>
+                        <td colspan="3" style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي الكلي</td>
                         <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">${totalSessions} جلسة</td>
                         <td style="padding: 12px; border: 1px solid #e2e8f0;">-</td>
                         <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center; color: #10b981;">${totalRevenue.toLocaleString()} ل.س</td>
@@ -597,6 +711,7 @@ async function restoreData(file) {
                 batch.set(ref, {
                     name: pat.name,
                     price: pat.price,
+                    status: pat.status || 'تحت العلاج',
                     sessions: pat.sessions || []
                 });
             });
