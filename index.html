@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
     <meta name="description" content="PhysioCare Pro - نظام متكامل لإدارة العلاج الطبيعي">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -44,6 +45,10 @@
             </div>
         </div>
         <div class="nav-actions">
+            <!-- زر الملفات الجديد 📂 -->
+            <button class="nav-btn" id="filesBtn" title="الملفات">
+                <i class="fas fa-folder-open"></i>
+            </button>
             <button class="nav-btn" id="settingsBtn" title="الإعدادات">
                 <i class="fas fa-cog"></i>
             </button>
@@ -147,7 +152,7 @@
     </div>
 </main>
 
-<!-- ========== مودال إضافة مريض جديد (مصمم بدقة) ========== -->
+<!-- ========== مودال إضافة مريض جديد ========== -->
 <div class="modal-overlay" id="patientModal">
     <div class="modal-container">
         <div class="modal-header">
@@ -271,7 +276,7 @@
     </div>
 </div>
 
-<!-- ========== مودال الإعدادات (فارغ حالياً للتعديل لاحقاً) ========== -->
+<!-- ========== مودال الإعدادات (فارغ للتطوير لاحقاً) ========== -->
 <div class="modal-overlay" id="settingsModal">
     <div class="modal-container">
         <div class="modal-header">
@@ -305,6 +310,54 @@
                     <div class="feature-item">
                         <i class="fas fa-chart-pie"></i>
                         <span>تقارير متقدمة</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary close-modal">حسناً</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== مودال الملفات (جديد - للتطوير لاحقاً) ========== -->
+<div class="modal-overlay" id="filesModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-title">
+                <div class="title-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div>
+                    <h3>الملفات والمستندات</h3>
+                    <p>إدارة ملفات المرضى</p>
+                </div>
+            </div>
+            <button class="modal-close close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body empty-settings">
+            <div class="coming-soon">
+                <i class="fas fa-file-alt"></i>
+                <h4>قيد التطوير</h4>
+                <p>سيتم إضافة نظام إدارة الملفات قريباً</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-upload"></i>
+                        <span>رفع ملفات المرضى</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-download"></i>
+                        <span>تحميل المستندات</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-image"></i>
+                        <span>صور الأشعة والتقارير</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-lock"></i>
+                        <span>حماية الملفات</span>
                     </div>
                 </div>
             </div>
