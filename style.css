@@ -21,21 +21,22 @@
     --primary-800: #3730a3;
     --primary-900: #312e81;
     
+    --success-50: #ecfdf5;
     --success-500: #10b981;
     --success-600: #059669;
     --warning-500: #f59e0b;
     --danger-500: #ef4444;
     --danger-600: #dc2626;
+    --secondary-500: #8b5cf6;
     
-    /* الظلال */
+    /* الظلال المتناسقة */
     --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
     --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-    --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
     
-    /* الحواف */
+    /* الحواف المتناسقة */
     --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -47,41 +48,56 @@
     /* الانتقالات */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* الوضع الليلي */
+/* ============================================
+   الوضع الليلي - متناسق بالكامل
+============================================ */
 body.dark {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-surface: #1e293b;
-    --bg-elevated: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --border-light: #334155;
-    --border-medium: #475569;
-    --card-bg: #1e293b;
-    --input-bg: #0f172a;
-    --hover-bg: rgba(99, 102, 241, 0.1);
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #0f0f14;
+    --bg-tertiary: #1a1a24;
+    --bg-surface: #12121a;
+    --bg-elevated: #1a1a24;
+    --bg-card: #16161f;
+    --bg-input: #0a0a0f;
+    
+    --text-primary: #ffffff;
+    --text-secondary: #e2e2e8;
+    --text-muted: #9ca3af;
+    --text-hint: #6b7280;
+    
+    --border-light: #2a2a35;
+    --border-medium: #3a3a45;
+    --border-dark: #4a4a55;
+    
+    --hover-bg: rgba(99, 102, 241, 0.12);
+    --active-bg: rgba(99, 102, 241, 0.2);
 }
 
-/* الوضع النهاري */
+/* ============================================
+   الوضع النهاري - متناسق بالكامل
+============================================ */
 body.light {
     --bg-primary: #f8fafc;
     --bg-secondary: #f1f5f9;
-    --bg-tertiary: #e2e8f0;
+    --bg-tertiary: #eef2ff;
     --bg-surface: #ffffff;
-    --bg-elevated: #ffffff;
+    --bg-elevated: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-input: #ffffff;
+    
     --text-primary: #0f172a;
     --text-secondary: #334155;
     --text-muted: #64748b;
+    --text-hint: #94a3b8;
+    
     --border-light: #e2e8f0;
     --border-medium: #cbd5e1;
-    --card-bg: #ffffff;
-    --input-bg: #ffffff;
+    --border-dark: #94a3b8;
+    
     --hover-bg: rgba(99, 102, 241, 0.05);
+    --active-bg: rgba(99, 102, 241, 0.1);
 }
 
 body {
@@ -105,6 +121,10 @@ body {
     justify-content: center;
     z-index: 10000;
     transition: opacity 0.5s, visibility 0.5s;
+}
+
+body.light .splash {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
 }
 
 .splash.hide {
@@ -149,6 +169,15 @@ body {
     font-size: 2rem;
     font-weight: 800;
     margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+body.dark .splash-card h1 {
+    color: white;
+}
+
+body.light .splash-card h1 {
+    color: #1e1b4b;
 }
 
 .splash-card h1 span {
@@ -156,14 +185,14 @@ body {
 }
 
 .splash-card p {
-    color: #94a3b8;
+    color: var(--text-muted);
     margin-bottom: 24px;
 }
 
 .splash-loader {
     width: 200px;
     height: 4px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(99, 102, 241, 0.2);
     border-radius: var(--radius-full);
     margin: 0 auto 16px;
     overflow: hidden;
@@ -181,11 +210,6 @@ body {
     0% { width: 0%; margin-left: 0; }
     50% { width: 70%; margin-left: 30%; }
     100% { width: 100%; margin-left: 0; }
-}
-
-.splash-card small {
-    color: #64748b;
-    font-size: 0.75rem;
 }
 
 /* ============================================
@@ -245,6 +269,7 @@ body {
 .brand-text h2 {
     font-size: 1.25rem;
     font-weight: 700;
+    color: var(--text-primary);
 }
 
 .brand-text h2 span {
@@ -345,7 +370,7 @@ body {
 }
 
 .stat-card {
-    background: var(--bg-surface);
+    background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-xl);
     padding: 20px;
@@ -480,6 +505,7 @@ body {
 .section-title h3 {
     font-size: 1rem;
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 .patient-count {
@@ -508,7 +534,7 @@ body {
 .search-input {
     width: 100%;
     padding: 10px 36px 10px 12px;
-    background: var(--input-bg);
+    background: var(--bg-input);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-full);
     font-family: inherit;
@@ -536,7 +562,7 @@ body {
 }
 
 /* ============================================
-   شبكة المرضى - تصميم دقيق
+   شبكة المرضى
 ============================================ */
 .patients-grid {
     padding: 20px;
@@ -546,7 +572,7 @@ body {
 }
 
 .patient-card {
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     padding: 16px;
@@ -592,6 +618,7 @@ body {
     font-size: 1rem;
     font-weight: 700;
     margin-bottom: 4px;
+    color: var(--text-primary);
 }
 
 .patient-status {
@@ -626,7 +653,7 @@ body {
 
 .patient-stats {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 12px;
     flex-wrap: wrap;
 }
@@ -639,6 +666,7 @@ body {
     background: var(--bg-tertiary);
     border-radius: var(--radius-full);
     font-size: 0.75rem;
+    color: var(--text-secondary);
 }
 
 .stat-chip i {
@@ -703,6 +731,7 @@ body {
 .empty-state h4 {
     font-size: 1.1rem;
     margin-bottom: 8px;
+    color: var(--text-primary);
 }
 
 .empty-state p {
@@ -712,7 +741,7 @@ body {
 }
 
 /* ============================================
-   مودالات - تصميم دقيق جداً
+   مودالات - تصميم دقيق
 ============================================ */
 .modal-overlay {
     display: none;
@@ -743,6 +772,7 @@ body {
     max-width: 520px;
     animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
     overflow: hidden;
+    border: 1px solid var(--border-light);
 }
 
 @keyframes modalSlideIn {
@@ -802,6 +832,7 @@ body {
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 2px;
+    color: var(--text-primary);
 }
 
 .modal-title p {
@@ -849,7 +880,7 @@ body {
 }
 
 /* ============================================
-   عناصر الإدخال - تصميم دقيق
+   عناصر الإدخال
 ============================================ */
 .input-group {
     margin-bottom: 24px;
@@ -873,7 +904,7 @@ body {
 .input-field {
     width: 100%;
     padding: 12px 16px;
-    background: var(--input-bg);
+    background: var(--bg-input);
     border: 1.5px solid var(--border-light);
     border-radius: var(--radius-lg);
     font-family: inherit;
@@ -928,6 +959,7 @@ body {
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all var(--transition-fast);
+    color: var(--text-secondary);
 }
 
 .status-option:hover {
@@ -938,6 +970,7 @@ body {
 .status-option.active {
     background: rgba(99, 102, 241, 0.1);
     border-color: var(--primary-500);
+    color: var(--primary-500);
 }
 
 .status-dot {
@@ -994,7 +1027,7 @@ body {
 .date-input {
     width: 100%;
     padding: 12px 40px 12px 16px;
-    background: var(--input-bg);
+    background: var(--bg-input);
     border: 1.5px solid var(--border-light);
     border-radius: var(--radius-lg);
     font-family: inherit;
@@ -1024,6 +1057,7 @@ body {
     background: var(--bg-tertiary);
     border-radius: var(--radius-full);
     font-size: 0.8rem;
+    color: var(--text-secondary);
 }
 
 .stat-badge i {
@@ -1072,6 +1106,7 @@ body {
     align-items: center;
     gap: 8px;
     font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 .session-date i {
@@ -1113,6 +1148,7 @@ body {
 .coming-soon h4 {
     font-size: 1rem;
     margin-bottom: 8px;
+    color: var(--text-primary);
 }
 
 .coming-soon p {
@@ -1136,6 +1172,7 @@ body {
     background: var(--bg-tertiary);
     border-radius: var(--radius-lg);
     font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 .feature-item i {
@@ -1143,7 +1180,7 @@ body {
 }
 
 /* ============================================
-   أزرار - تصميم دقيق
+   أزرار
 ============================================ */
 .btn-primary {
     background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
@@ -1225,6 +1262,7 @@ body {
     z-index: 10001;
     animation: toastSlide 0.3s ease;
     box-shadow: var(--shadow-lg);
+    color: var(--text-primary);
 }
 
 .toast-notification.show {
@@ -1299,4 +1337,4 @@ body {
         right: 16px;
         justify-content: center;
     }
-        }
+                    }
