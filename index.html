@@ -1,1 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="PhysioCare Pro - نظام متكامل لإدارة العلاج الطبيعي">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <title>PhysioCare Pro | نظام العلاج الطبيعي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<!-- شاشة البداية -->
+<div class="splash" id="splash">
+    <div class="splash-content">
+        <div class="splash-icon">⚕️</div>
+        <h1>PhysioCare Pro</h1>
+        <p>نظام إدارة العلاج الطبيعي</p>
+        <div class="loader"></div>
+    </div>
+</div>
+
+<!-- التطبيق الرئيسي -->
+<main class="app" id="app" style="display: none;">
+    <!-- رأس الصفحة -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⚕️</div>
+            <div>
+                <h1>PhysioCare Pro</h1>
+                <p>نظام إدارة العلاج الطبيعي</p>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn-icon" id="themeToggle" title="تغيير الثيم">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-icon" id="syncBtn" title="مزامنة">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- شريط الإجراءات -->
+    <div class="action-bar">
+        <button class="btn btn-primary" id="addPatientBtn">
+            <i class="fas fa-plus"></i> مريض جديد
+        </button>
+        <button class="btn btn-outline" id="pdfReportBtn">
+            <i class="fas fa-file-pdf"></i> تقرير عام
+        </button>
+        <button class="btn btn-outline" id="backupBtn">
+            <i class="fas fa-download"></i> نسخ احتياطي
+        </button>
+        <button class="btn btn-outline" id="restoreBtn">
+            <i class="fas fa-upload"></i> استعادة
+        </button>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="stats" id="stats">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <div>
+                <span class="stat-value" id="totalPatients">0</span>
+                <span class="stat-label">مريض</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-calendar-check"></i>
+            <div>
+                <span class="stat-value" id="totalSessions">0</span>
+                <span class="stat-label">جلسة</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-money-bill"></i>
+            <div>
+                <span class="stat-value" id="totalRevenue">0</span>
+                <span class="stat-label">ل.س</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- قائمة المرضى -->
+    <div class="patients-container">
+        <div class="patients-header">
+            <h3><i class="fas fa-list"></i> قائمة المرضى</h3>
+            <input type="text" class="search-box" id="searchInput" placeholder="🔍 بحث عن مريض...">
+        </div>
+        <div id="patientsList" class="patients-list"></div>
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-folder-open"></i>
+            <p>لا يوجد مرضى مسجلون</p>
+            <button class="btn btn-primary" id="emptyAddBtn">إضافة مريض</button>
+        </div>
+    </div>
+</main>
+
+<!-- مودال إضافة مريض -->
+<div class="modal" id="patientModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> إضافة مريض جديد</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> اسم المريض</label>
+                <input type="text" id="patientName" class="form-input" placeholder="أدخل الاسم الكامل" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> سعر الجلسة (ل.س)</label>
+                <input type="number" id="patientPrice" class="form-input" value="50000">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary close-modal">إلغاء</button>
+            <button class="btn btn-primary" id="confirmAdd">إضافة</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال الجلسات -->
+<div class="modal" id="sessionsModal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-alt"></i> <span id="sessionPatientName"></span></h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="add-session">
+                <input type="date" id="sessionDate" class="form-input">
+                <button class="btn btn-primary" id="addSessionBtn">
+                    <i class="fas fa-plus"></i> إضافة جلسة
+                </button>
+            </div>
+            <div id="sessionsList" class="sessions-list"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="resetSessionsBtn">مسح الكل</button>
+            <button class="btn btn-secondary close-modal">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد -->
+<div class="modal" id="confirmModal">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h3 id="confirmTitle">تأكيد</h3>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">هل أنت متأكد؟</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelConfirm">إلغاء</button>
+            <button class="btn btn-danger" id="confirmAction">تأكيد</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال ملف الاستعادة -->
+<input type="file" id="restoreFileInput" style="display: none;" accept=".json">
+
+<!-- إشعارات -->
+<div id="toast" class="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
