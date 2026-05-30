@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#1a1a2e">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="theme-color" content="#0f172a">
     <meta name="description" content="PhysioCare Pro - نظام متكامل لإدارة العلاج الطبيعي">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -16,156 +16,322 @@
 
 <!-- شاشة البداية -->
 <div class="splash" id="splash">
-    <div class="splash-content">
-        <div class="splash-icon">⚕️</div>
-        <h1>PhysioCare Pro</h1>
-        <p>نظام إدارة العلاج الطبيعي</p>
-        <div class="loader"></div>
+    <div class="splash-card">
+        <div class="splash-icon">
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <h1>PhysioCare <span>Pro</span></h1>
+        <p>نظام متكامل لإدارة العلاج الطبيعي</p>
+        <div class="splash-loader">
+            <div class="loader-bar"></div>
+        </div>
+        <small>v2.0.0</small>
     </div>
 </div>
 
 <!-- التطبيق الرئيسي -->
 <main class="app" id="app" style="display: none;">
-    <!-- رأس الصفحة -->
-    <header class="header">
-        <div class="logo">
-            <div class="logo-icon">⚕️</div>
-            <div>
-                <h1>PhysioCare Pro</h1>
+    
+    <!-- الشريط العلوي -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">
+                <i class="fas fa-stethoscope"></i>
+            </div>
+            <div class="brand-text">
+                <h2>PhysioCare <span>Pro</span></h2>
                 <p>نظام إدارة العلاج الطبيعي</p>
             </div>
         </div>
-        <div class="actions">
-            <button class="btn-icon" id="themeToggle" title="تغيير الثيم">
+        <div class="nav-actions">
+            <button class="nav-btn" id="settingsBtn" title="الإعدادات">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="nav-btn" id="themeToggle" title="تغيير الثيم">
                 <i class="fas fa-moon"></i>
             </button>
-            <button class="btn-icon" id="syncBtn" title="مزامنة">
+            <button class="nav-btn" id="syncBtn" title="مزامنة">
                 <i class="fas fa-sync-alt"></i>
             </button>
         </div>
-    </header>
+    </nav>
 
-    <!-- حالة الاتصال -->
-    <div class="connection-status" id="connectionStatus">
-        <div class="status-indicator" id="statusIndicator"></div>
-        <span id="statusText">جاري الاتصال...</span>
+    <!-- شريط حالة الاتصال -->
+    <div class="connection-bar" id="connectionBar">
+        <div class="connection-dot" id="connectionDot"></div>
+        <span class="connection-text" id="connectionText">جاري الاتصال بقاعدة البيانات...</span>
+        <span class="connection-time" id="connectionTime"></span>
     </div>
 
-    <!-- شريط الإجراءات -->
-    <div class="action-bar">
-        <button class="btn btn-primary" id="addPatientBtn">
-            <i class="fas fa-plus"></i> مريض جديد
-        </button>
-        <button class="btn btn-outline" id="pdfReportBtn">
-            <i class="fas fa-file-pdf"></i> تقرير عام
-        </button>
-        <button class="btn btn-outline" id="backupBtn">
-            <i class="fas fa-download"></i> نسخ احتياطي
-        </button>
-        <button class="btn btn-outline" id="restoreBtn">
-            <i class="fas fa-upload"></i> استعادة
-        </button>
-    </div>
-
-    <!-- إحصائيات سريعة -->
-    <div class="stats" id="stats">
+    <!-- بطاقات الإحصائيات -->
+    <div class="stats-grid">
         <div class="stat-card">
-            <i class="fas fa-users"></i>
-            <div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
                 <span class="stat-value" id="totalPatients">0</span>
-                <span class="stat-label">مريض</span>
+                <span class="stat-label">إجمالي المرضى</span>
             </div>
         </div>
         <div class="stat-card">
-            <i class="fas fa-calendar-check"></i>
-            <div>
+            <div class="stat-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
                 <span class="stat-value" id="totalSessions">0</span>
-                <span class="stat-label">جلسة</span>
+                <span class="stat-label">إجمالي الجلسات</span>
             </div>
         </div>
         <div class="stat-card">
-            <i class="fas fa-money-bill"></i>
-            <div>
+            <div class="stat-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-info">
                 <span class="stat-value" id="totalRevenue">0</span>
-                <span class="stat-label">ل.س</span>
+                <span class="stat-label">الإيرادات</span>
             </div>
         </div>
     </div>
 
-    <!-- قائمة المرضى -->
-    <div class="patients-container">
-        <div class="patients-header">
-            <h3><i class="fas fa-list"></i> قائمة المرضى</h3>
-            <input type="text" class="search-box" id="searchInput" placeholder="🔍 بحث عن مريض...">
+    <!-- شريط الإجراءات السريعة -->
+    <div class="actions-bar">
+        <button class="action-btn primary" id="addPatientBtn">
+            <i class="fas fa-plus-circle"></i>
+            <span>مريض جديد</span>
+        </button>
+        <button class="action-btn outline" id="pdfReportBtn">
+            <i class="fas fa-file-pdf"></i>
+            <span>تقرير عام</span>
+        </button>
+        <button class="action-btn outline" id="backupBtn">
+            <i class="fas fa-database"></i>
+            <span>نسخ احتياطي</span>
+        </button>
+        <button class="action-btn outline" id="restoreBtn">
+            <i class="fas fa-upload"></i>
+            <span>استعادة</span>
+        </button>
+    </div>
+
+    <!-- قسم البحث والمرضى -->
+    <div class="patients-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-user-injured"></i>
+                <h3>قائمة المرضى</h3>
+                <span class="patient-count" id="patientCount">0</span>
+            </div>
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن مريض...">
+                <button class="search-clear" id="clearSearch" style="display: none;">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
         </div>
-        <div id="patientsList" class="patients-list"></div>
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <i class="fas fa-folder-open"></i>
-            <p>لا يوجد مرضى مسجلون</p>
-            <button class="btn btn-primary" id="emptyAddBtn">إضافة مريض</button>
+        
+        <div class="patients-grid" id="patientsList"></div>
+        
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <h4>لا يوجد مرضى مسجلون</h4>
+            <p>ابدأ بإضافة أول مريض لك</p>
+            <button class="action-btn primary" id="emptyAddBtn">
+                <i class="fas fa-plus-circle"></i>
+                إضافة مريض
+            </button>
         </div>
     </div>
 </main>
 
-<!-- مودال إضافة مريض -->
-<div class="modal" id="patientModal">
-    <div class="modal-content">
+<!-- ========== مودال إضافة مريض جديد (مصمم بدقة) ========== -->
+<div class="modal-overlay" id="patientModal">
+    <div class="modal-container">
         <div class="modal-header">
-            <h3><i class="fas fa-user-plus"></i> إضافة مريض جديد</h3>
-            <button class="close-modal">&times;</button>
+            <div class="modal-title">
+                <div class="title-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div>
+                    <h3>إضافة مريض جديد</h3>
+                    <p>أدخل بيانات المريض</p>
+                </div>
+            </div>
+            <button class="modal-close close-modal">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         <div class="modal-body">
-            <div class="form-group">
-                <label><i class="fas fa-user"></i> اسم المريض</label>
-                <input type="text" id="patientName" class="form-input" placeholder="أدخل الاسم الكامل" autocomplete="off">
+            <div class="input-group">
+                <label class="input-label">
+                    <i class="fas fa-user"></i>
+                    <span>الاسم الكامل</span>
+                </label>
+                <input type="text" id="patientName" class="input-field" placeholder="مثال: أحمد محمد علي" autocomplete="off">
+                <div class="input-hint">أدخل اسم المريض الثلاثي</div>
             </div>
-            <div class="form-group">
-                <label><i class="fas fa-tag"></i> سعر الجلسة (ل.س)</label>
-                <input type="number" id="patientPrice" class="form-input" value="50000">
+            
+            <div class="input-group">
+                <label class="input-label">
+                    <i class="fas fa-tag"></i>
+                    <span>سعر الجلسة</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="number" id="patientPrice" class="input-field" value="50000">
+                    <span class="input-currency">ل.س</span>
+                </div>
+                <div class="input-hint">سعر الجلسة الواحدة بالليرة السورية</div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">
+                    <i class="fas fa-chart-line"></i>
+                    <span>حالة المريض</span>
+                </label>
+                <div class="status-selector" id="statusSelector">
+                    <div class="status-option" data-status="تحت العلاج">
+                        <div class="status-dot active-status"></div>
+                        <span>تحت العلاج</span>
+                    </div>
+                    <div class="status-option" data-status="مستقر">
+                        <div class="status-dot stable-status"></div>
+                        <span>مستقر</span>
+                    </div>
+                    <div class="status-option" data-status="مكتمل">
+                        <div class="status-dot completed-status"></div>
+                        <span>مكتمل</span>
+                    </div>
+                    <div class="status-option" data-status="متوقف">
+                        <div class="status-dot stopped-status"></div>
+                        <span>متوقف</span>
+                    </div>
+                </div>
+                <input type="hidden" id="patientStatus" value="تحت العلاج">
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary close-modal">إلغاء</button>
-            <button class="btn btn-primary" id="confirmAdd">إضافة</button>
+            <button class="btn-secondary close-modal">إلغاء</button>
+            <button class="btn-primary" id="confirmAdd">إضافة المريض</button>
         </div>
     </div>
 </div>
 
-<!-- مودال الجلسات -->
-<div class="modal" id="sessionsModal">
-    <div class="modal-content modal-lg">
+<!-- ========== مودال الجلسات ========== -->
+<div class="modal-overlay" id="sessionsModal">
+    <div class="modal-container modal-lg">
         <div class="modal-header">
-            <h3><i class="fas fa-calendar-alt"></i> <span id="sessionPatientName"></span></h3>
-            <button class="close-modal">&times;</button>
+            <div class="modal-title">
+                <div class="title-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div>
+                    <h3 id="sessionPatientName">سجل الجلسات</h3>
+                    <p>إدارة جلسات المريض</p>
+                </div>
+            </div>
+            <button class="modal-close close-modal">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         <div class="modal-body">
-            <div class="add-session">
-                <input type="date" id="sessionDate" class="form-input">
-                <button class="btn btn-primary" id="addSessionBtn">
-                    <i class="fas fa-plus"></i> إضافة جلسة
+            <div class="session-add">
+                <div class="date-picker-wrapper">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="date" id="sessionDate" class="date-input">
+                </div>
+                <button class="btn-primary" id="addSessionBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>إضافة جلسة</span>
                 </button>
             </div>
-            <div id="sessionsList" class="sessions-list"></div>
+            
+            <div class="sessions-stats">
+                <div class="stat-badge">
+                    <i class="fas fa-clock"></i>
+                    <span>إجمالي الجلسات: <strong id="totalSessionsCount">0</strong></span>
+                </div>
+                <div class="stat-badge">
+                    <i class="fas fa-coins"></i>
+                    <span>المبلغ المستحق: <strong id="totalAmountDue">0</strong> ل.س</span>
+                </div>
+            </div>
+            
+            <div class="sessions-list" id="sessionsList"></div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-danger" id="resetSessionsBtn">مسح الكل</button>
-            <button class="btn btn-secondary close-modal">إغلاق</button>
+            <button class="btn-danger" id="resetSessionsBtn">
+                <i class="fas fa-trash-alt"></i>
+                مسح جميع الجلسات
+            </button>
+            <button class="btn-secondary close-modal">إغلاق</button>
         </div>
     </div>
 </div>
 
-<!-- مودال تأكيد -->
-<div class="modal" id="confirmModal">
-    <div class="modal-content modal-sm">
+<!-- ========== مودال الإعدادات (فارغ حالياً للتعديل لاحقاً) ========== -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal-container">
         <div class="modal-header">
-            <h3 id="confirmTitle">تأكيد</h3>
+            <div class="modal-title">
+                <div class="title-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div>
+                    <h3>الإعدادات</h3>
+                    <p>سيتم إضافة المزيد من الخيارات قريباً</p>
+                </div>
+            </div>
+            <button class="modal-close close-modal">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="modal-body">
-            <p id="confirmMessage">هل أنت متأكد؟</p>
+        <div class="modal-body empty-settings">
+            <div class="coming-soon">
+                <i class="fas fa-tools"></i>
+                <h4>قيد التطوير</h4>
+                <p>سيتم إضافة خيارات متقدمة قريباً</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-palette"></i>
+                        <span>تخصيص الألوان</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bell"></i>
+                        <span>إشعارات الجلسات</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>تقارير متقدمة</span>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" id="cancelConfirm">إلغاء</button>
-            <button class="btn btn-danger" id="confirmAction">تأكيد</button>
+            <button class="btn-primary close-modal">حسناً</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== مودال التأكيد ========== -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-container modal-sm">
+        <div class="modal-header">
+            <div class="modal-title">
+                <div class="title-icon warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h3 id="confirmTitle">تأكيد</h3>
+                    <p id="confirmMessage">هل أنت متأكد؟</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer center">
+            <button class="btn-secondary" id="cancelConfirm">إلغاء</button>
+            <button class="btn-danger" id="confirmAction">تأكيد</button>
         </div>
     </div>
 </div>
@@ -173,10 +339,10 @@
 <!-- مودال ملف الاستعادة -->
 <input type="file" id="restoreFileInput" style="display: none;" accept=".json">
 
-<!-- إشعارات -->
-<div id="toast" class="toast"></div>
+<!-- إشعارات منبثقة -->
+<div class="toast-notification" id="toast"></div>
 
-<!-- scripts -->
+<!-- السكريبتات -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
