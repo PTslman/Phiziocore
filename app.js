@@ -148,47 +148,95 @@ function setupStatusSelector() {
 // إعداد المستمعين
 // ============================================
 function setupEventListeners() {
-    document.getElementById('themeToggle').onclick = toggleTheme;
-    document.getElementById('syncBtn').onclick = manualSync;
-    document.getElementById('settingsBtn').onclick = () => showModal('settingsModal');
-    document.getElementById('addPatientBtn').onclick = () => {
+    // أزرار التنقل
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) themeToggle.onclick = toggleTheme;
+    
+    const syncBtn = document.getElementById('syncBtn');
+    if (syncBtn) syncBtn.onclick = manualSync;
+    
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) settingsBtn.onclick = () => showModal('settingsModal');
+    
+    const filesBtn = document.getElementById('filesBtn');
+    if (filesBtn) filesBtn.onclick = () => showModal('filesModal');
+    
+    // أزرار المرضى
+    const addPatientBtn = document.getElementById('addPatientBtn');
+    if (addPatientBtn) addPatientBtn.onclick = () => {
         resetPatientForm();
         showModal('patientModal');
     };
-    document.getElementById('emptyAddBtn').onclick = () => {
+    
+    const emptyAddBtn = document.getElementById('emptyAddBtn');
+    if (emptyAddBtn) emptyAddBtn.onclick = () => {
         resetPatientForm();
         showModal('patientModal');
     };
-    document.getElementById('confirmAdd').onclick = addPatient;
-    document.getElementById('pdfReportBtn').onclick = generateGeneralPDF;
-    document.getElementById('backupBtn').onclick = backupData;
-    document.getElementById('restoreBtn').onclick = () => document.getElementById('restoreFileInput').click();
-    document.getElementById('restoreFileInput').onchange = (e) => {
-        if (e.target.files[0]) restoreData(e.target.files[0]);
-        e.target.value = '';
-    };
-    document.getElementById('addSessionBtn').onclick = addSession;
-    document.getElementById('resetSessionsBtn').onclick = resetSessions;
-    document.getElementById('cancelConfirm').onclick = hideConfirmModal;
-    document.getElementById('confirmAction').onclick = () => {
-        if (confirmCallback) {
-            confirmCallback();
-            hideConfirmModal();
-        }
-    };
+    
+    const confirmAdd = document.getElementById('confirmAdd');
+    if (confirmAdd) confirmAdd.onclick = addPatient;
+    
+    // أزرار التقارير
+    const pdfReportBtn = document.getElementById('pdfReportBtn');
+    if (pdfReportBtn) pdfReportBtn.onclick = generateGeneralPDF;
+    
+    // أزرار النسخ الاحتياطي
+    const backupBtn = document.getElementById('backupBtn');
+    if (backupBtn) backupBtn.onclick = backupData;
+    
+    const restoreBtn = document.getElementById('restoreBtn');
+    if (restoreBtn) restoreBtn.onclick = () => document.getElementById('restoreFileInput').click();
+    
+    const restoreFileInput = document.getElementById('restoreFileInput');
+    if (restoreFileInput) {
+        restoreFileInput.onchange = (e) => {
+            if (e.target.files[0]) restoreData(e.target.files[0]);
+            e.target.value = '';
+        };
+    }
+    
+    // أزرار الجلسات
+    const addSessionBtn = document.getElementById('addSessionBtn');
+    if (addSessionBtn) addSessionBtn.onclick = addSession;
+    
+    const resetSessionsBtn = document.getElementById('resetSessionsBtn');
+    if (resetSessionsBtn) resetSessionsBtn.onclick = resetSessions;
+    
+    // أزرار التأكيد
+    const cancelConfirm = document.getElementById('cancelConfirm');
+    if (cancelConfirm) cancelConfirm.onclick = hideConfirmModal;
+    
+    const confirmAction = document.getElementById('confirmAction');
+    if (confirmAction) {
+        confirmAction.onclick = () => {
+            if (confirmCallback) {
+                confirmCallback();
+                hideConfirmModal();
+            }
+        };
+    }
     
     // بحث
     const searchInput = document.getElementById('searchInput');
     const clearSearch = document.getElementById('clearSearch');
-    searchInput.oninput = () => {
-        filterPatients();
-        clearSearch.style.display = searchInput.value ? 'flex' : 'none';
-    };
-    clearSearch.onclick = () => {
-        searchInput.value = '';
-        filterPatients();
-        clearSearch.style.display = 'none';
-    };
+    
+    if (searchInput) {
+        searchInput.oninput = () => {
+            filterPatients();
+            if (clearSearch) clearSearch.style.display = searchInput.value ? 'flex' : 'none';
+        };
+    }
+    
+    if (clearSearch) {
+        clearSearch.onclick = () => {
+            if (searchInput) {
+                searchInput.value = '';
+                filterPatients();
+                clearSearch.style.display = 'none';
+            }
+        };
+    }
     
     // إغلاق المودالات
     document.querySelectorAll('.close-modal').forEach(btn => {
@@ -205,9 +253,13 @@ function setupEventListeners() {
 }
 
 function resetPatientForm() {
-    document.getElementById('patientName').value = '';
-    document.getElementById('patientPrice').value = '50000';
-    document.getElementById('patientStatus').value = 'تحت العلاج';
+    const nameInput = document.getElementById('patientName');
+    const priceInput = document.getElementById('patientPrice');
+    const statusInput = document.getElementById('patientStatus');
+    
+    if (nameInput) nameInput.value = '';
+    if (priceInput) priceInput.value = '50000';
+    if (statusInput) statusInput.value = 'تحت العلاج';
     
     const options = document.querySelectorAll('.status-option');
     options.forEach(opt => {
@@ -244,15 +296,22 @@ function renderPatients() {
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const filtered = patients.filter(p => p.name && p.name.toLowerCase().includes(searchTerm));
     
+    if (!container) return;
+    
     if (filtered.length === 0) {
-        document.getElementById('emptyState').style.display = 'block';
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) emptyState.style.display = 'block';
         container.innerHTML = '';
-        document.getElementById('patientCount').textContent = '0';
+        const patientCount = document.getElementById('patientCount');
+        if (patientCount) patientCount.textContent = '0';
         return;
     }
     
-    document.getElementById('emptyState').style.display = 'none';
-    document.getElementById('patientCount').textContent = filtered.length;
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    
+    const patientCount = document.getElementById('patientCount');
+    if (patientCount) patientCount.textContent = filtered.length;
     
     container.innerHTML = filtered.map(patient => {
         const sessionCount = patient.sessions?.length || 0;
@@ -310,9 +369,13 @@ function updateStats() {
     const totalSessions = patients.reduce((sum, p) => sum + (p.sessions?.length || 0), 0);
     const totalRevenue = patients.reduce((sum, p) => sum + ((p.sessions?.length || 0) * (p.price || 0)), 0);
     
-    document.getElementById('totalPatients').textContent = totalPatients;
-    document.getElementById('totalSessions').textContent = totalSessions;
-    document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString();
+    const totalPatientsEl = document.getElementById('totalPatients');
+    const totalSessionsEl = document.getElementById('totalSessions');
+    const totalRevenueEl = document.getElementById('totalRevenue');
+    
+    if (totalPatientsEl) totalPatientsEl.textContent = totalPatients;
+    if (totalSessionsEl) totalSessionsEl.textContent = totalSessions;
+    if (totalRevenueEl) totalRevenueEl.textContent = totalRevenue.toLocaleString();
 }
 
 function filterPatients() {
@@ -320,7 +383,7 @@ function filterPatients() {
 }
 
 // ============================================
-// إضافة مريض - الإصدار المصحح (يغلق المودال فوراً)
+// إضافة مريض
 // ============================================
 async function addPatient() {
     const name = document.getElementById('patientName')?.value.trim();
@@ -339,15 +402,12 @@ async function addPatient() {
     
     // إغلاق المودال فوراً
     hideModal('patientModal');
-    
-    // إظهار رسالة جاري الحفظ
     showToast('💾 جاري حفظ المريض...');
     
     try {
         const database = window.db ? window.db() : null;
         
         if (database && window.isFirebaseReady && window.isFirebaseReady()) {
-            // حفظ في Firebase - بدون انتظار
             database.collection('patients').add({ 
                 name: name, 
                 price: price,
@@ -359,7 +419,6 @@ async function addPatient() {
             }).catch((error) => {
                 console.error('Firebase add error:', error);
                 showToast('⚠️ تم الحفظ محلياً بسبب خطأ في الشبكة');
-                // حفظ محلي كنسخة احتياطية
                 const newPatient = {
                     id: 'local_' + Date.now(),
                     name: name,
@@ -373,7 +432,6 @@ async function addPatient() {
                 updateStats();
             });
         } else {
-            // حفظ محلي
             const newPatient = {
                 id: 'local_' + Date.now(),
                 name: name,
@@ -388,7 +446,6 @@ async function addPatient() {
             showToast('✅ تمت إضافة المريض محلياً');
         }
         
-        // تنظيف الحقول فوراً
         resetPatientForm();
         
     } catch (error) {
@@ -423,15 +480,18 @@ async function deletePatient(patientId) {
 }
 
 // ============================================
-// إدارة الجلسات - الإصدار المصحح
+// إدارة الجلسات
 // ============================================
 async function openSessions(patientId) {
     currentPatientId = patientId;
     const patient = patients.find(p => p.id === patientId);
     if (!patient) return;
     
-    document.getElementById('sessionPatientName').innerHTML = patient.name;
-    document.getElementById('sessionDate').value = new Date().toISOString().slice(0, 10);
+    const sessionPatientName = document.getElementById('sessionPatientName');
+    if (sessionPatientName) sessionPatientName.innerHTML = patient.name;
+    
+    const sessionDate = document.getElementById('sessionDate');
+    if (sessionDate) sessionDate.value = new Date().toISOString().slice(0, 10);
     
     renderSessions();
     updateSessionStats(patient);
@@ -442,13 +502,18 @@ function updateSessionStats(patient) {
     const sessionCount = patient.sessions?.length || 0;
     const totalAmount = sessionCount * (patient.price || 0);
     
-    document.getElementById('totalSessionsCount').textContent = sessionCount;
-    document.getElementById('totalAmountDue').textContent = totalAmount.toLocaleString();
+    const totalSessionsCount = document.getElementById('totalSessionsCount');
+    const totalAmountDue = document.getElementById('totalAmountDue');
+    
+    if (totalSessionsCount) totalSessionsCount.textContent = sessionCount;
+    if (totalAmountDue) totalAmountDue.textContent = totalAmount.toLocaleString();
 }
 
 function renderSessions() {
     const patient = patients.find(p => p.id === currentPatientId);
     const container = document.getElementById('sessionsList');
+    
+    if (!container) return;
     
     if (!patient?.sessions?.length) {
         container.innerHTML = `
@@ -476,7 +541,6 @@ function renderSessions() {
     `).join('');
 }
 
-// إضافة جلسة - تغلق المودال فوراً
 async function addSession() {
     const date = document.getElementById('sessionDate')?.value;
     if (!date) {
@@ -487,9 +551,7 @@ async function addSession() {
     const patient = patients.find(p => p.id === currentPatientId);
     if (!patient) return;
     
-    // إغلاق المودال فوراً
     hideModal('sessionsModal');
-    
     showToast('💾 جاري حفظ الجلسة...');
     
     try {
@@ -497,14 +559,12 @@ async function addSession() {
         const database = window.db ? window.db() : null;
         
         if (database && window.isFirebaseReady && window.isFirebaseReady() && !patient.id?.startsWith('local_')) {
-            // حفظ في Firebase
             database.collection('patients').doc(currentPatientId).update({ sessions: newSessions })
                 .then(() => {
                     showToast('✅ تمت إضافة الجلسة');
                 })
                 .catch((error) => {
                     console.error('Firebase session error:', error);
-                    // حفظ محلي
                     patient.sessions = newSessions;
                     const index = patients.findIndex(p => p.id === currentPatientId);
                     if (index !== -1) patients[index] = patient;
@@ -514,7 +574,6 @@ async function addSession() {
                     showToast('✅ تمت إضافة الجلسة محلياً');
                 });
         } else {
-            // حفظ محلي
             patient.sessions = newSessions;
             const index = patients.findIndex(p => p.id === currentPatientId);
             if (index !== -1) patients[index] = patient;
@@ -610,33 +669,40 @@ async function generatePatientPDF(patientId) {
     
     const totalAmount = sessionsList.length * patient.price;
     
+    // تحديد ألوان PDF حسب وضع الثيم
+    const isDarkMode = document.body.classList.contains('dark');
+    const bgColor = isDarkMode ? '#1a1a2e' : '#ffffff';
+    const textColor = isDarkMode ? '#ffffff' : '#1e1b4b';
+    const cardBg = isDarkMode ? '#16213e' : '#f8fafc';
+    const borderColor = isDarkMode ? '#2a2a3e' : '#e2e8f0';
+    
     const html = `
-        <div style="direction: rtl; font-family: 'Cairo', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; background: white;">
+        <div style="direction: rtl; font-family: 'Cairo', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; background: ${bgColor}; color: ${textColor};">
             <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
                 <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <i class="fas fa-hand-holding-heart" style="font-size: 2rem; color: white;"></i>
                 </div>
-                <h2 style="color: #1e1b4b; margin: 0;">PhysioCare Pro</h2>
-                <p style="color: #64748b; margin: 5px 0 0;">تقرير المريض - ${new Date().toLocaleDateString('ar-EG')}</p>
+                <h2 style="color: ${isDarkMode ? '#a5b4fc' : '#4f46e5'}; margin: 0;">PhysioCare Pro</h2>
+                <p style="color: ${isDarkMode ? '#94a3b8' : '#64748b'}; margin: 5px 0 0;">تقرير المريض - ${new Date().toLocaleDateString('ar-EG')}</p>
             </div>
             
-            <div style="background: #f8fafc; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
-                <h3 style="color: #1e1b4b; margin-bottom: 15px;">👤 بيانات المريض</h3>
+            <div style="background: ${cardBg}; border-radius: 16px; padding: 20px; margin-bottom: 25px; border: 1px solid ${borderColor};">
+                <h3 style="color: ${textColor}; margin-bottom: 15px;">👤 بيانات المريض</h3>
                 <table style="width: 100%;">
-                    <tr><td style="padding: 8px 0;"><strong>الاسم:</strong></td><td>${escapeHtml(patient.name)}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>الحالة:</strong></td><td>${patient.status || 'تحت العلاج'}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>سعر الجلسة:</strong></td><td>${patient.price.toLocaleString()} ل.س</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>عدد الجلسات:</strong></td><td>${sessionsList.length} جلسة</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>الإجمالي المستحق:</strong></td><td style="color: #10b981; font-weight: bold;">${totalAmount.toLocaleString()} ل.س</td></tr>
+                    <tr><td style="padding: 8px 0; color: ${textColor};"><strong>الاسم:</strong></td><td style="color: ${textColor};">${escapeHtml(patient.name)}</td></tr>
+                    <tr><td style="padding: 8px 0; color: ${textColor};"><strong>الحالة:</strong></td><td style="color: ${textColor};">${patient.status || 'تحت العلاج'}</td></tr>
+                    <tr><td style="padding: 8px 0; color: ${textColor};"><strong>سعر الجلسة:</strong></td><td style="color: ${textColor};">${patient.price.toLocaleString()} ل.س</td></tr>
+                    <tr><td style="padding: 8px 0; color: ${textColor};"><strong>عدد الجلسات:</strong></td><td style="color: ${textColor};">${sessionsList.length} جلسة</td></tr>
+                    <tr><td style="padding: 8px 0; color: ${textColor};"><strong>الإجمالي المستحق:</strong></td><td style="color: #10b981; font-weight: bold;">${totalAmount.toLocaleString()} ل.س</td></tr>
                 </table>
             </div>
             
-            <div style="background: #ffffff; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0;">
-                <h3 style="color: #1e1b4b; margin-bottom: 15px;">📅 تفاصيل الجلسات</h3>
+            <div style="background: ${bgColor}; border-radius: 16px; padding: 20px; border: 1px solid ${borderColor};">
+                <h3 style="color: ${textColor}; margin-bottom: 15px;">📅 تفاصيل الجلسات</h3>
                 ${sessionRows || '<p style="text-align: center; color: #64748b;">لا توجد جلسات مسجلة</p>'}
             </div>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid ${borderColor}; font-size: 11px; color: ${isDarkMode ? '#94a3b8' : '#94a3b8'};">
                 تم إنشاء هذا التقرير بواسطة PhysioCare Pro
             </div>
         </div>
@@ -650,7 +716,7 @@ async function generatePatientPDF(patientId) {
     document.body.appendChild(tempDiv);
     
     try {
-        const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' });
+        const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: bgColor });
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -682,52 +748,58 @@ async function generateGeneralPDF() {
         totalRevenue += cnt * (p.price || 0);
     });
     
+    const isDarkMode = document.body.classList.contains('dark');
+    const bgColor = isDarkMode ? '#1a1a2e' : '#ffffff';
+    const textColor = isDarkMode ? '#ffffff' : '#1e1b4b';
+    const cardBg = isDarkMode ? '#16213e' : '#f8fafc';
+    const borderColor = isDarkMode ? '#2a2a3e' : '#e2e8f0';
+    
     const patientRows = patients.map((p, i) => `
-        <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 10px; text-align: center;">${i + 1}</td>
-            <td style="padding: 10px;">${escapeHtml(p.name)}</td>
-            <td style="padding: 10px; text-align: center;">${p.status || 'تحت العلاج'}</td>
-            <td style="padding: 10px; text-align: center;">${p.sessions?.length || 0}</td>
-            <td style="padding: 10px; text-align: center;">${(p.price || 0).toLocaleString()}</td>
+        <tr style="border-bottom: 1px solid ${borderColor};">
+            <td style="padding: 10px; text-align: center; color: ${textColor};">${i + 1}</td>
+            <td style="padding: 10px; color: ${textColor};">${escapeHtml(p.name)}</td>
+            <td style="padding: 10px; text-align: center; color: ${textColor};">${p.status || 'تحت العلاج'}</td>
+            <td style="padding: 10px; text-align: center; color: ${textColor};">${p.sessions?.length || 0}</td>
+            <td style="padding: 10px; text-align: center; color: ${textColor};">${(p.price || 0).toLocaleString()}</td>
             <td style="padding: 10px; text-align: center; color: #10b981;">${((p.sessions?.length || 0) * (p.price || 0)).toLocaleString()}</td>
-        </tr>
+         </tr>
     `).join('');
     
     const html = `
-        <div style="direction: rtl; font-family: 'Cairo', sans-serif; padding: 30px; background: white;">
+        <div style="direction: rtl; font-family: 'Cairo', sans-serif; padding: 30px; background: ${bgColor}; color: ${textColor};">
             <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
                 <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <i class="fas fa-chart-line" style="font-size: 2rem; color: white;"></i>
                 </div>
-                <h2 style="color: #1e1b4b;">تقرير PhysioCare Pro الشامل</h2>
-                <p style="color: #64748b;">${new Date().toLocaleString('ar-EG')}</p>
+                <h2 style="color: ${isDarkMode ? '#a5b4fc' : '#4f46e5'};">تقرير PhysioCare Pro الشامل</h2>
+                <p style="color: ${isDarkMode ? '#94a3b8' : '#64748b'};">${new Date().toLocaleString('ar-EG')}</p>
             </div>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: #f1f5f9;">
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">#</th>
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">المريض</th>
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الجلسات</th>
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">سعر الجلسة</th>
-                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي</th>
+                    <tr style="background: ${cardBg};">
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">#</th>
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">المريض</th>
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">الحالة</th>
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">الجلسات</th>
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">سعر الجلسة</th>
+                        <th style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">الإجمالي</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${patientRows}
                 </tbody>
                 <tfoot>
-                    <tr style="background: #f1f5f9; font-weight: bold;">
-                        <td colspan="3" style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي الكلي</td>
-                        <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">${totalSessions} جلسة</td>
-                        <td style="padding: 12px; border: 1px solid #e2e8f0;">-</td>
-                        <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center; color: #10b981;">${totalRevenue.toLocaleString()} ل.س</td>
+                    <tr style="background: ${cardBg}; font-weight: bold;">
+                        <td colspan="3" style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">الإجمالي الكلي</td>
+                        <td style="padding: 12px; border: 1px solid ${borderColor}; text-align: center; color: ${textColor};">${totalSessions} جلسة</td>
+                        <td style="padding: 12px; border: 1px solid ${borderColor}; color: ${textColor};">-</td>
+                        <td style="padding: 12px; border: 1px solid ${borderColor}; text-align: center; color: #10b981;">${totalRevenue.toLocaleString()} ل.س</td>
                     </tr>
                 </tfoot>
             </table>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid ${borderColor}; font-size: 11px; color: ${isDarkMode ? '#94a3b8' : '#94a3b8'};">
                 تم إنشاء هذا التقرير بواسطة PhysioCare Pro
             </div>
         </div>
@@ -741,7 +813,7 @@ async function generateGeneralPDF() {
     document.body.appendChild(pdfDiv);
     
     try {
-        const canvas = await html2canvas(pdfDiv, { scale: 2, backgroundColor: '#ffffff' });
+        const canvas = await html2canvas(pdfDiv, { scale: 2, backgroundColor: bgColor });
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -824,12 +896,14 @@ function toggleTheme() {
         document.body.classList.remove('dark');
         document.body.classList.add('light');
         localStorage.setItem('theme', 'light');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
     } else {
         document.body.classList.remove('light');
         document.body.classList.add('dark');
         localStorage.setItem('theme', 'dark');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
@@ -837,10 +911,12 @@ function loadTheme() {
     const theme = localStorage.getItem('theme');
     if (theme === 'light') {
         document.body.classList.add('light');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
     } else {
         document.body.classList.add('dark');
-        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
@@ -848,23 +924,31 @@ function loadTheme() {
 // دوال مساعدة
 // ============================================
 function showModal(id) {
-    document.getElementById(id).classList.add('show');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('show');
 }
 
 function hideModal(id) {
-    document.getElementById(id).classList.remove('show');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('show');
 }
 
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
+    if (!toast) return;
+    
     toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function showConfirm(title, message, callback) {
-    document.getElementById('confirmTitle').textContent = title;
-    document.getElementById('confirmMessage').textContent = message;
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    
+    if (confirmTitle) confirmTitle.textContent = title;
+    if (confirmMessage) confirmMessage.textContent = message;
+    
     confirmCallback = callback;
     showModal('confirmModal');
 }
@@ -887,7 +971,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// تصدير الدوال
+// تصدير الدوال للاستخدام العام
 window.openSessions = openSessions;
 window.generatePatientPDF = generatePatientPDF;
 window.deletePatient = deletePatient;
