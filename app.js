@@ -1,5 +1,5 @@
 // ============================================
-// التطبيق الرئيسي - PhysioCare Pro (الإصدار المصحح)
+// التطبيق الرئيسي - PhysioCare Pro (الإصدار النهائي)
 // ============================================
 
 // متغيرات عامة
@@ -19,10 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
-    // التحقق من Firebase
     checkFirebaseAndSync();
     
-    // إخفاء شاشة البداية
     setTimeout(() => {
         const splash = document.getElementById('splash');
         if (splash) {
@@ -37,7 +35,7 @@ function initializeApp() {
 }
 
 // ============================================
-// التحقق من Firebase وبدء المزامنة
+// التحقق من Firebase
 // ============================================
 function checkFirebaseAndSync() {
     const connectionDot = document.getElementById('connectionDot');
@@ -46,7 +44,6 @@ function checkFirebaseAndSync() {
     if (connectionDot) connectionDot.className = 'connection-dot connecting';
     if (connectionText) connectionText.textContent = 'جاري الاتصال بقاعدة البيانات...';
     
-    // انتظار تهيئة Firebase
     const checkInterval = setInterval(() => {
         const isReady = window.isFirebaseReady && window.isFirebaseReady();
         const database = window.db ? window.db() : null;
@@ -57,17 +54,13 @@ function checkFirebaseAndSync() {
             clearInterval(checkInterval);
             setupRealtimeSync();
         } else if (document.readyState === 'complete' && !isReady) {
-            // إذا فشل الاتصال بعد 5 ثوان
             if (connectionDot) connectionDot.className = 'connection-dot disconnected';
-            if (connectionText) connectionText.textContent = '⚠️ غير متصل - سيتم حفظ البيانات محلياً';
-            showToast('⚠️ فشل الاتصال بقاعدة البيانات، البيانات تحفظ محلياً', true);
-            // بدء وضع عدم الاتصال
+            if (connectionText) connectionText.textContent = '⚠️ غير متصل - وضع عدم الاتصال';
             loadLocalData();
             clearInterval(checkInterval);
         }
     }, 500);
     
-    // مهلة 10 ثوان
     setTimeout(() => {
         clearInterval(checkInterval);
         if (!window.isFirebaseReady || !window.isFirebaseReady()) {
@@ -78,7 +71,6 @@ function checkFirebaseAndSync() {
     }, 10000);
 }
 
-// تحميل بيانات محلية كنسخة احتياطية
 function loadLocalData() {
     const savedData = localStorage.getItem('physiocare_patients');
     if (savedData) {
@@ -86,37 +78,30 @@ function loadLocalData() {
             patients = JSON.parse(savedData);
             renderPatients();
             updateStats();
-            showToast('📱 تم تحميل البيانات من التخزين المحلي');
         } catch(e) {
             console.error('Error loading local data:', e);
         }
     }
 }
 
-// حفظ البيانات محلياً
 function saveLocalData() {
-    if (patients.length > 0) {
-        localStorage.setItem('physiocare_patients', JSON.stringify(patients));
-    }
+    localStorage.setItem('physiocare_patients', JSON.stringify(patients));
 }
 
 // ============================================
-// مزامنة Firebase الحية
+// مزامنة Firebase
 // ============================================
 function setupRealtimeSync() {
     try {
         const database = window.db ? window.db() : null;
         if (!database) {
-            console.warn('Firestore not available - using local storage');
             loadLocalData();
             return;
         }
         
         const patientsRef = database.collection('patients');
         
-        if (unsubscribe) {
-            unsubscribe();
-        }
+        if (unsubscribe) unsubscribe();
         
         unsubscribe = patientsRef.onSnapshot(snapshot => {
             patients = [];
@@ -132,46 +117,15 @@ function setupRealtimeSync() {
             });
             renderPatients();
             updateStats();
-            saveLocalData(); // حفظ نسخة محلية
-            updateConnectionUI(true);
+            saveLocalData();
         }, error => {
             console.error("Firestore error:", error);
-            updateConnectionUI(false);
-            showToast('⚠️ خطأ في الاتصال بقاعدة البيانات', true);
-            loadLocalData(); // استخدام البيانات المحلية كبديل
+            loadLocalData();
         });
         
     } catch (error) {
         console.error('Setup error:', error);
-        updateConnectionUI(false);
         loadLocalData();
-    }
-}
-
-function updateConnectionUI(isConnected) {
-    const connectionDot = document.getElementById('connectionDot');
-    const connectionText = document.getElementById('connectionText');
-    const connectionTime = document.getElementById('connectionTime');
-    
-    if (!connectionDot) return;
-    
-    if (isConnected) {
-        connectionDot.className = 'connection-dot connected';
-        if (connectionText) connectionText.textContent = '✅ متصل بقاعدة البيانات';
-        if (connectionTime) connectionTime.textContent = new Date().toLocaleTimeString('ar-EG');
-    } else {
-        connectionDot.className = 'connection-dot disconnected';
-        if (connectionText) connectionText.textContent = '⚠️ غير متصل - البيانات محلية';
-    }
-}
-
-function manualSync() {
-    showToast('🔄 جاري مزامنة البيانات...');
-    if (unsubscribe) {
-        unsubscribe();
-        setupRealtimeSync();
-    } else {
-        checkFirebaseAndSync();
     }
 }
 
@@ -194,81 +148,47 @@ function setupStatusSelector() {
 // إعداد المستمعين
 // ============================================
 function setupEventListeners() {
-    // أزرار رئيسية
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) themeToggle.onclick = toggleTheme;
-    
-    const syncBtn = document.getElementById('syncBtn');
-    if (syncBtn) syncBtn.onclick = manualSync;
-    
-    const settingsBtn = document.getElementById('settingsBtn');
-    if (settingsBtn) settingsBtn.onclick = () => showModal('settingsModal');
-    
-    const addPatientBtn = document.getElementById('addPatientBtn');
-    if (addPatientBtn) addPatientBtn.onclick = () => showModal('patientModal');
-    
-    const emptyAddBtn = document.getElementById('emptyAddBtn');
-    if (emptyAddBtn) emptyAddBtn.onclick = () => showModal('patientModal');
-    
-    const confirmAdd = document.getElementById('confirmAdd');
-    if (confirmAdd) confirmAdd.onclick = addPatient;
-    
-    const pdfReportBtn = document.getElementById('pdfReportBtn');
-    if (pdfReportBtn) pdfReportBtn.onclick = generateGeneralPDF;
-    
-    const backupBtn = document.getElementById('backupBtn');
-    if (backupBtn) backupBtn.onclick = backupData;
-    
-    const restoreBtn = document.getElementById('restoreBtn');
-    if (restoreBtn) restoreBtn.onclick = () => document.getElementById('restoreFileInput').click();
-    
-    const restoreFileInput = document.getElementById('restoreFileInput');
-    if (restoreFileInput) {
-        restoreFileInput.onchange = (e) => {
-            if (e.target.files[0]) restoreData(e.target.files[0]);
-            e.target.value = '';
-        };
-    }
-    
-    const addSessionBtn = document.getElementById('addSessionBtn');
-    if (addSessionBtn) addSessionBtn.onclick = addSession;
-    
-    const resetSessionsBtn = document.getElementById('resetSessionsBtn');
-    if (resetSessionsBtn) resetSessionsBtn.onclick = resetSessions;
-    
-    const cancelConfirm = document.getElementById('cancelConfirm');
-    if (cancelConfirm) cancelConfirm.onclick = hideConfirmModal;
-    
-    const confirmAction = document.getElementById('confirmAction');
-    if (confirmAction) {
-        confirmAction.onclick = () => {
-            if (confirmCallback) {
-                confirmCallback();
-                hideConfirmModal();
-            }
-        };
-    }
+    document.getElementById('themeToggle').onclick = toggleTheme;
+    document.getElementById('syncBtn').onclick = manualSync;
+    document.getElementById('settingsBtn').onclick = () => showModal('settingsModal');
+    document.getElementById('addPatientBtn').onclick = () => {
+        resetPatientForm();
+        showModal('patientModal');
+    };
+    document.getElementById('emptyAddBtn').onclick = () => {
+        resetPatientForm();
+        showModal('patientModal');
+    };
+    document.getElementById('confirmAdd').onclick = addPatient;
+    document.getElementById('pdfReportBtn').onclick = generateGeneralPDF;
+    document.getElementById('backupBtn').onclick = backupData;
+    document.getElementById('restoreBtn').onclick = () => document.getElementById('restoreFileInput').click();
+    document.getElementById('restoreFileInput').onchange = (e) => {
+        if (e.target.files[0]) restoreData(e.target.files[0]);
+        e.target.value = '';
+    };
+    document.getElementById('addSessionBtn').onclick = addSession;
+    document.getElementById('resetSessionsBtn').onclick = resetSessions;
+    document.getElementById('cancelConfirm').onclick = hideConfirmModal;
+    document.getElementById('confirmAction').onclick = () => {
+        if (confirmCallback) {
+            confirmCallback();
+            hideConfirmModal();
+        }
+    };
     
     // بحث
     const searchInput = document.getElementById('searchInput');
     const clearSearch = document.getElementById('clearSearch');
-    
-    if (searchInput) {
-        searchInput.oninput = () => {
-            filterPatients();
-            if (clearSearch) clearSearch.style.display = searchInput.value ? 'flex' : 'none';
-        };
-    }
-    
-    if (clearSearch) {
-        clearSearch.onclick = () => {
-            if (searchInput) {
-                searchInput.value = '';
-                filterPatients();
-                clearSearch.style.display = 'none';
-            }
-        };
-    }
+    searchInput.oninput = () => {
+        filterPatients();
+        clearSearch.style.display = searchInput.value ? 'flex' : 'none';
+    };
+    clearSearch.onclick = () => {
+        searchInput.value = '';
+        filterPatients();
+        clearSearch.style.display = 'none';
+    };
     
     // إغلاق المودالات
     document.querySelectorAll('.close-modal').forEach(btn => {
@@ -282,6 +202,28 @@ function setupEventListeners() {
             e.target.classList.remove('show');
         }
     };
+}
+
+function resetPatientForm() {
+    document.getElementById('patientName').value = '';
+    document.getElementById('patientPrice').value = '50000';
+    document.getElementById('patientStatus').value = 'تحت العلاج';
+    
+    const options = document.querySelectorAll('.status-option');
+    options.forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.getAttribute('data-status') === 'تحت العلاج') {
+            opt.classList.add('active');
+        }
+    });
+}
+
+function manualSync() {
+    showToast('🔄 جاري مزامنة البيانات...');
+    if (unsubscribe) {
+        unsubscribe();
+        setupRealtimeSync();
+    }
 }
 
 // ============================================
@@ -302,22 +244,15 @@ function renderPatients() {
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const filtered = patients.filter(p => p.name && p.name.toLowerCase().includes(searchTerm));
     
-    if (!container) return;
-    
     if (filtered.length === 0) {
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) emptyState.style.display = 'block';
+        document.getElementById('emptyState').style.display = 'block';
         container.innerHTML = '';
-        const patientCount = document.getElementById('patientCount');
-        if (patientCount) patientCount.textContent = '0';
+        document.getElementById('patientCount').textContent = '0';
         return;
     }
     
-    const emptyState = document.getElementById('emptyState');
-    if (emptyState) emptyState.style.display = 'none';
-    
-    const patientCount = document.getElementById('patientCount');
-    if (patientCount) patientCount.textContent = filtered.length;
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('patientCount').textContent = filtered.length;
     
     container.innerHTML = filtered.map(patient => {
         const sessionCount = patient.sessions?.length || 0;
@@ -375,13 +310,9 @@ function updateStats() {
     const totalSessions = patients.reduce((sum, p) => sum + (p.sessions?.length || 0), 0);
     const totalRevenue = patients.reduce((sum, p) => sum + ((p.sessions?.length || 0) * (p.price || 0)), 0);
     
-    const totalPatientsEl = document.getElementById('totalPatients');
-    const totalSessionsEl = document.getElementById('totalSessions');
-    const totalRevenueEl = document.getElementById('totalRevenue');
-    
-    if (totalPatientsEl) totalPatientsEl.textContent = totalPatients;
-    if (totalSessionsEl) totalSessionsEl.textContent = totalSessions;
-    if (totalRevenueEl) totalRevenueEl.textContent = totalRevenue.toLocaleString();
+    document.getElementById('totalPatients').textContent = totalPatients;
+    document.getElementById('totalSessions').textContent = totalSessions;
+    document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString();
 }
 
 function filterPatients() {
@@ -389,7 +320,7 @@ function filterPatients() {
 }
 
 // ============================================
-// إضافة مريض - الإصدار المصحح
+// إضافة مريض - الإصدار المصحح (يغلق المودال فوراً)
 // ============================================
 async function addPatient() {
     const name = document.getElementById('patientName')?.value.trim();
@@ -406,29 +337,43 @@ async function addPatient() {
         return;
     }
     
-    // إظهار مؤقت التحميل
-    const confirmBtn = document.getElementById('confirmAdd');
-    const originalText = confirmBtn?.innerHTML;
-    if (confirmBtn) {
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإضافة...';
-        confirmBtn.disabled = true;
-    }
+    // إغلاق المودال فوراً
+    hideModal('patientModal');
+    
+    // إظهار رسالة جاري الحفظ
+    showToast('💾 جاري حفظ المريض...');
     
     try {
         const database = window.db ? window.db() : null;
         
         if (database && window.isFirebaseReady && window.isFirebaseReady()) {
-            // حفظ في Firebase
-            await database.collection('patients').add({ 
+            // حفظ في Firebase - بدون انتظار
+            database.collection('patients').add({ 
                 name: name, 
                 price: price,
                 status: status,
                 sessions: [],
                 createdAt: new Date().toISOString()
+            }).then(() => {
+                showToast('✅ تمت إضافة المريض بنجاح');
+            }).catch((error) => {
+                console.error('Firebase add error:', error);
+                showToast('⚠️ تم الحفظ محلياً بسبب خطأ في الشبكة');
+                // حفظ محلي كنسخة احتياطية
+                const newPatient = {
+                    id: 'local_' + Date.now(),
+                    name: name,
+                    price: price,
+                    status: status,
+                    sessions: []
+                };
+                patients.push(newPatient);
+                saveLocalData();
+                renderPatients();
+                updateStats();
             });
-            showToast('✅ تمت إضافة المريض بنجاح إلى قاعدة البيانات');
         } else {
-            // حفظ محلياً إذا كان Firebase غير متصل
+            // حفظ محلي
             const newPatient = {
                 id: 'local_' + Date.now(),
                 name: name,
@@ -440,46 +385,15 @@ async function addPatient() {
             saveLocalData();
             renderPatients();
             updateStats();
-            showToast('✅ تمت إضافة المريض محلياً (سيتم مزامنته لاحقاً)');
+            showToast('✅ تمت إضافة المريض محلياً');
         }
         
-        // إغلاق المودال وتنظيف الحقول
-        hideModal('patientModal');
-        
-        // تنظيف حقول الإدخال
-        const nameInput = document.getElementById('patientName');
-        const priceInput = document.getElementById('patientPrice');
-        if (nameInput) nameInput.value = '';
-        if (priceInput) priceInput.value = '50000';
-        
-        // إعادة تعيين محدد الحالة
-        const statusInput = document.getElementById('patientStatus');
-        if (statusInput) statusInput.value = 'تحت العلاج';
-        
-        const options = document.querySelectorAll('.status-option');
-        options.forEach(opt => {
-            opt.classList.remove('active');
-            if (opt.getAttribute('data-status') === 'تحت العلاج') {
-                opt.classList.add('active');
-            }
-        });
-        
-        // تحديث الواجهة
-        if (database && window.isFirebaseReady && window.isFirebaseReady()) {
-            // المزامنة ستحصل تلقائياً من onSnapshot
-        } else {
-            renderPatients();
-            updateStats();
-        }
+        // تنظيف الحقول فوراً
+        resetPatientForm();
         
     } catch (error) {
         console.error('Add patient error:', error);
         showToast('❌ فشل إضافة المريض: ' + error.message, true);
-    } finally {
-        if (confirmBtn) {
-            confirmBtn.innerHTML = originalText;
-            confirmBtn.disabled = false;
-        }
     }
 }
 
@@ -488,18 +402,17 @@ async function deletePatient(patientId) {
         try {
             const database = window.db ? window.db() : null;
             
-            if (database && window.isFirebaseReady && window.isFirebaseReady()) {
+            if (database && window.isFirebaseReady && window.isFirebaseReady() && !patientId.startsWith('local_')) {
                 await database.collection('patients').doc(patientId).delete();
-                showToast('✅ تم حذف المريض من قاعدة البيانات');
+                showToast('✅ تم حذف المريض');
             } else {
-                // حذف محلي
                 const index = patients.findIndex(p => p.id === patientId);
                 if (index !== -1) {
                     patients.splice(index, 1);
                     saveLocalData();
                     renderPatients();
                     updateStats();
-                    showToast('✅ تم حذف المريض محلياً');
+                    showToast('✅ تم حذف المريض');
                 }
             }
         } catch (error) {
@@ -517,13 +430,10 @@ async function openSessions(patientId) {
     const patient = patients.find(p => p.id === patientId);
     if (!patient) return;
     
-    const sessionPatientName = document.getElementById('sessionPatientName');
-    if (sessionPatientName) sessionPatientName.innerHTML = patient.name;
+    document.getElementById('sessionPatientName').innerHTML = patient.name;
+    document.getElementById('sessionDate').value = new Date().toISOString().slice(0, 10);
     
-    const sessionDate = document.getElementById('sessionDate');
-    if (sessionDate) sessionDate.value = new Date().toISOString().slice(0, 10);
-    
-    await renderSessions();
+    renderSessions();
     updateSessionStats(patient);
     showModal('sessionsModal');
 }
@@ -532,18 +442,13 @@ function updateSessionStats(patient) {
     const sessionCount = patient.sessions?.length || 0;
     const totalAmount = sessionCount * (patient.price || 0);
     
-    const totalSessionsCount = document.getElementById('totalSessionsCount');
-    const totalAmountDue = document.getElementById('totalAmountDue');
-    
-    if (totalSessionsCount) totalSessionsCount.textContent = sessionCount;
-    if (totalAmountDue) totalAmountDue.textContent = totalAmount.toLocaleString();
+    document.getElementById('totalSessionsCount').textContent = sessionCount;
+    document.getElementById('totalAmountDue').textContent = totalAmount.toLocaleString();
 }
 
-async function renderSessions() {
+function renderSessions() {
     const patient = patients.find(p => p.id === currentPatientId);
     const container = document.getElementById('sessionsList');
-    
-    if (!container) return;
     
     if (!patient?.sessions?.length) {
         container.innerHTML = `
@@ -571,6 +476,7 @@ async function renderSessions() {
     `).join('');
 }
 
+// إضافة جلسة - تغلق المودال فوراً
 async function addSession() {
     const date = document.getElementById('sessionDate')?.value;
     if (!date) {
@@ -581,44 +487,46 @@ async function addSession() {
     const patient = patients.find(p => p.id === currentPatientId);
     if (!patient) return;
     
-    // إظهار مؤقت التحميل
-    const addBtn = document.getElementById('addSessionBtn');
-    const originalText = addBtn?.innerHTML;
-    if (addBtn) {
-        addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
-        addBtn.disabled = true;
-    }
+    // إغلاق المودال فوراً
+    hideModal('sessionsModal');
+    
+    showToast('💾 جاري حفظ الجلسة...');
     
     try {
         const newSessions = [...(patient.sessions || []), { date }];
         const database = window.db ? window.db() : null;
         
         if (database && window.isFirebaseReady && window.isFirebaseReady() && !patient.id?.startsWith('local_')) {
-            await database.collection('patients').doc(currentPatientId).update({ sessions: newSessions });
-            showToast('✅ تمت إضافة الجلسة إلى قاعدة البيانات');
+            // حفظ في Firebase
+            database.collection('patients').doc(currentPatientId).update({ sessions: newSessions })
+                .then(() => {
+                    showToast('✅ تمت إضافة الجلسة');
+                })
+                .catch((error) => {
+                    console.error('Firebase session error:', error);
+                    // حفظ محلي
+                    patient.sessions = newSessions;
+                    const index = patients.findIndex(p => p.id === currentPatientId);
+                    if (index !== -1) patients[index] = patient;
+                    saveLocalData();
+                    renderPatients();
+                    updateStats();
+                    showToast('✅ تمت إضافة الجلسة محلياً');
+                });
         } else {
-            // تحديث محلي
+            // حفظ محلي
             patient.sessions = newSessions;
             const index = patients.findIndex(p => p.id === currentPatientId);
             if (index !== -1) patients[index] = patient;
             saveLocalData();
             renderPatients();
             updateStats();
-            showToast('✅ تمت إضافة الجلسة محلياً');
+            showToast('✅ تمت إضافة الجلسة');
         }
-        
-        // تحديث الواجهة
-        await renderSessions();
-        updateSessionStats(patient);
         
     } catch (error) {
         console.error('Add session error:', error);
         showToast('❌ فشل إضافة الجلسة', true);
-    } finally {
-        if (addBtn) {
-            addBtn.innerHTML = originalText;
-            addBtn.disabled = false;
-        }
     }
 }
 
@@ -634,7 +542,6 @@ async function removeSession(index) {
                 
                 if (database && window.isFirebaseReady && window.isFirebaseReady() && !patient.id?.startsWith('local_')) {
                     await database.collection('patients').doc(currentPatientId).update({ sessions: newSessions });
-                    showToast('✅ تم حذف الجلسة');
                 } else {
                     patient.sessions = newSessions;
                     const idx = patients.findIndex(p => p.id === currentPatientId);
@@ -642,11 +549,13 @@ async function removeSession(index) {
                     saveLocalData();
                     renderPatients();
                     updateStats();
-                    showToast('✅ تم حذف الجلسة محلياً');
                 }
                 
-                await renderSessions();
-                updateSessionStats(patient);
+                showToast('✅ تم حذف الجلسة');
+                if (document.getElementById('sessionsModal').classList.contains('show')) {
+                    renderSessions();
+                    updateSessionStats(patient);
+                }
                 
             } catch (error) {
                 console.error('Remove session error:', error);
@@ -660,23 +569,20 @@ async function resetSessions() {
     showConfirm('مسح الجلسات', '⚠️ هل تريد مسح جميع جلسات هذا المريض؟', async () => {
         try {
             const database = window.db ? window.db() : null;
+            const patient = patients.find(p => p.id === currentPatientId);
             
-            if (database && window.isFirebaseReady && window.isFirebaseReady()) {
+            if (database && window.isFirebaseReady && window.isFirebaseReady() && !patient?.id?.startsWith('local_')) {
                 await database.collection('patients').doc(currentPatientId).update({ sessions: [] });
-                showToast('🗑️ تم مسح جميع الجلسات');
-            } else {
-                const patient = patients.find(p => p.id === currentPatientId);
-                if (patient) {
-                    patient.sessions = [];
-                    const idx = patients.findIndex(p => p.id === currentPatientId);
-                    if (idx !== -1) patients[idx] = patient;
-                    saveLocalData();
-                    renderPatients();
-                    updateStats();
-                    showToast('🗑️ تم مسح جميع الجلسات محلياً');
-                }
+            } else if (patient) {
+                patient.sessions = [];
+                const idx = patients.findIndex(p => p.id === currentPatientId);
+                if (idx !== -1) patients[idx] = patient;
+                saveLocalData();
+                renderPatients();
+                updateStats();
             }
             
+            showToast('🗑️ تم مسح جميع الجلسات');
             hideModal('sessionsModal');
         } catch (error) {
             console.error('Reset sessions error:', error);
@@ -686,7 +592,7 @@ async function resetSessions() {
 }
 
 // ============================================
-// PDF Functions (مختصرة للاختصار - نفس الكود السابق)
+// PDF Functions
 // ============================================
 async function generatePatientPDF(patientId) {
     const patient = patients.find(p => p.id === patientId);
@@ -694,8 +600,71 @@ async function generatePatientPDF(patientId) {
     
     showToast(`📄 جاري إنشاء PDF للمريض: ${patient.name}...`);
     
-    // ... (نفس الكود السابق لتوليد PDF)
-    // للإختصار، نفس الكود من الإصدار السابق
+    const sessionsList = patient.sessions || [];
+    const sessionRows = sessionsList.map((s, idx) => `
+        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+            <span style="font-weight: 600;">جلسة ${idx + 1}</span>
+            <span>${formatDate(s.date)}</span>
+        </div>
+    `).join('');
+    
+    const totalAmount = sessionsList.length * patient.price;
+    
+    const html = `
+        <div style="direction: rtl; font-family: 'Cairo', sans-serif; max-width: 800px; margin: 0 auto; padding: 30px; background: white;">
+            <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-hand-holding-heart" style="font-size: 2rem; color: white;"></i>
+                </div>
+                <h2 style="color: #1e1b4b; margin: 0;">PhysioCare Pro</h2>
+                <p style="color: #64748b; margin: 5px 0 0;">تقرير المريض - ${new Date().toLocaleDateString('ar-EG')}</p>
+            </div>
+            
+            <div style="background: #f8fafc; border-radius: 16px; padding: 20px; margin-bottom: 25px;">
+                <h3 style="color: #1e1b4b; margin-bottom: 15px;">👤 بيانات المريض</h3>
+                <table style="width: 100%;">
+                    <tr><td style="padding: 8px 0;"><strong>الاسم:</strong></td><td>${escapeHtml(patient.name)}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong>الحالة:</strong></td><td>${patient.status || 'تحت العلاج'}</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong>سعر الجلسة:</strong></td><td>${patient.price.toLocaleString()} ل.س</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong>عدد الجلسات:</strong></td><td>${sessionsList.length} جلسة</td></tr>
+                    <tr><td style="padding: 8px 0;"><strong>الإجمالي المستحق:</strong></td><td style="color: #10b981; font-weight: bold;">${totalAmount.toLocaleString()} ل.س</td></tr>
+                </table>
+            </div>
+            
+            <div style="background: #ffffff; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0;">
+                <h3 style="color: #1e1b4b; margin-bottom: 15px;">📅 تفاصيل الجلسات</h3>
+                ${sessionRows || '<p style="text-align: center; color: #64748b;">لا توجد جلسات مسجلة</p>'}
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
+                تم إنشاء هذا التقرير بواسطة PhysioCare Pro
+            </div>
+        </div>
+    `;
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.top = '-10000px';
+    tempDiv.style.left = '-10000px';
+    document.body.appendChild(tempDiv);
+    
+    try {
+        const canvas = await html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save(`${patient.name}_تقرير_طبي.pdf`);
+        showToast(`✅ تم تنزيل PDF للمريض ${patient.name}`);
+    } catch (err) {
+        console.error('PDF error:', err);
+        showToast('❌ حدث خطأ أثناء إنشاء PDF', true);
+    } finally {
+        document.body.removeChild(tempDiv);
+    }
 }
 
 async function generateGeneralPDF() {
@@ -703,8 +672,90 @@ async function generateGeneralPDF() {
         showToast('❌ لا توجد بيانات لإنشاء التقرير', true);
         return;
     }
+    
     showToast('📊 جاري إنشاء التقرير العام...');
-    // ... (نفس الكود السابق)
+    
+    let totalSessions = 0, totalRevenue = 0;
+    patients.forEach(p => {
+        const cnt = p.sessions?.length || 0;
+        totalSessions += cnt;
+        totalRevenue += cnt * (p.price || 0);
+    });
+    
+    const patientRows = patients.map((p, i) => `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px; text-align: center;">${i + 1}</td>
+            <td style="padding: 10px;">${escapeHtml(p.name)}</td>
+            <td style="padding: 10px; text-align: center;">${p.status || 'تحت العلاج'}</td>
+            <td style="padding: 10px; text-align: center;">${p.sessions?.length || 0}</td>
+            <td style="padding: 10px; text-align: center;">${(p.price || 0).toLocaleString()}</td>
+            <td style="padding: 10px; text-align: center; color: #10b981;">${((p.sessions?.length || 0) * (p.price || 0)).toLocaleString()}</td>
+        </tr>
+    `).join('');
+    
+    const html = `
+        <div style="direction: rtl; font-family: 'Cairo', sans-serif; padding: 30px; background: white;">
+            <div style="text-align: center; border-bottom: 3px solid #6366f1; padding-bottom: 20px; margin-bottom: 25px;">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <i class="fas fa-chart-line" style="font-size: 2rem; color: white;"></i>
+                </div>
+                <h2 style="color: #1e1b4b;">تقرير PhysioCare Pro الشامل</h2>
+                <p style="color: #64748b;">${new Date().toLocaleString('ar-EG')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">#</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">المريض</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الجلسات</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">سعر الجلسة</th>
+                        <th style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${patientRows}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f1f5f9; font-weight: bold;">
+                        <td colspan="3" style="padding: 12px; border: 1px solid #e2e8f0;">الإجمالي الكلي</td>
+                        <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center;">${totalSessions} جلسة</td>
+                        <td style="padding: 12px; border: 1px solid #e2e8f0;">-</td>
+                        <td style="padding: 12px; border: 1px solid #e2e8f0; text-align: center; color: #10b981;">${totalRevenue.toLocaleString()} ل.س</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
+                تم إنشاء هذا التقرير بواسطة PhysioCare Pro
+            </div>
+        </div>
+    `;
+    
+    const pdfDiv = document.createElement('div');
+    pdfDiv.innerHTML = html;
+    pdfDiv.style.position = 'absolute';
+    pdfDiv.style.top = '-10000px';
+    pdfDiv.style.left = '-10000px';
+    document.body.appendChild(pdfDiv);
+    
+    try {
+        const canvas = await html2canvas(pdfDiv, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save(`PhysioCare_تقرير_عام.pdf`);
+        showToast('✅ تم إنشاء التقرير العام');
+    } catch (err) {
+        console.error('PDF error:', err);
+        showToast('❌ حدث خطأ في إنشاء PDF', true);
+    } finally {
+        document.body.removeChild(pdfDiv);
+    }
 }
 
 // ============================================
@@ -773,14 +824,12 @@ function toggleTheme() {
         document.body.classList.remove('dark');
         document.body.classList.add('light');
         localStorage.setItem('theme', 'light');
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
     } else {
         document.body.classList.remove('light');
         document.body.classList.add('dark');
         localStorage.setItem('theme', 'dark');
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
@@ -788,12 +837,10 @@ function loadTheme() {
     const theme = localStorage.getItem('theme');
     if (theme === 'light') {
         document.body.classList.add('light');
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
     } else {
         document.body.classList.add('dark');
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
     }
 }
 
@@ -801,31 +848,23 @@ function loadTheme() {
 // دوال مساعدة
 // ============================================
 function showModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.add('show');
+    document.getElementById(id).classList.add('show');
 }
 
 function hideModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('show');
+    document.getElementById(id).classList.remove('show');
 }
 
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
-    if (!toast) return;
-    
     toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function showConfirm(title, message, callback) {
-    const confirmTitle = document.getElementById('confirmTitle');
-    const confirmMessage = document.getElementById('confirmMessage');
-    
-    if (confirmTitle) confirmTitle.textContent = title;
-    if (confirmMessage) confirmMessage.textContent = message;
-    
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
     confirmCallback = callback;
     showModal('confirmModal');
 }
@@ -848,7 +887,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// تصدير الدوال للاستخدام العام
+// تصدير الدوال
 window.openSessions = openSessions;
 window.generatePatientPDF = generatePatientPDF;
 window.deletePatient = deletePatient;
